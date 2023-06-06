@@ -36,7 +36,7 @@ class CrossOver(bt.Strategy):
         """
         dt = dt or self.datas[0].datetime.date(0)
         time = self.datas[0].datetime.time()
-        print('%s - %s, %s' % (dt.isoformat(), time, txt))
+        print(f'{dt.isoformat()} - {time}, {txt}')
 
     def next(self):
         if self.position.size == 0:

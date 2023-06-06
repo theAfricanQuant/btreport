@@ -50,32 +50,35 @@ class PerformanceReport:
         drawdown = st.analyzers.myDrawDown.get_analysis()
         sharpe_ratio = st.analyzers.mySharpe.get_analysis()['sharperatio']
         sqn_score = st.analyzers.mySqn.get_analysis()['sqn']
-        kpi = {# PnL
-               'start_cash': self.get_startcash(),
-               'rpl': rpl,
-               'result_won_trades': trade_analysis.won.pnl.total,
-               'result_lost_trades': trade_analysis.lost.pnl.total,
-               'profit_factor': (-1 * trade_analysis.won.pnl.total / trade_analysis.lost.pnl.total),
-               'rpl_per_trade': rpl / trades_closed,
-               'total_return': 100 * total_return,
-               'annual_return': (100 * (1 + total_return)**(365.25 / bt_period_days) - 100),
-               'max_money_drawdown': drawdown['max']['moneydown'],
-               'max_pct_drawdown': drawdown['max']['drawdown'],
-               # trades
-               'total_number_trades': total_number_trades,
-               'trades_closed': trades_closed,
-               'pct_winning': 100 * trade_analysis.won.total / trades_closed,
-               'pct_losing': 100 * trade_analysis.lost.total / trades_closed,
-               'avg_money_winning': trade_analysis.won.pnl.average,
-               'avg_money_losing':  trade_analysis.lost.pnl.average,
-               'best_winning_trade': trade_analysis.won.pnl.max,
-               'worst_losing_trade': trade_analysis.lost.pnl.max,
-               #  performance
-               'sharpe_ratio': sharpe_ratio,
-               'sqn_score': sqn_score,
-               'sqn_human': self._sqn2rating(sqn_score)
-               }
-        return kpi
+        return {  # PnL
+            'start_cash': self.get_startcash(),
+            'rpl': rpl,
+            'result_won_trades': trade_analysis.won.pnl.total,
+            'result_lost_trades': trade_analysis.lost.pnl.total,
+            'profit_factor': (
+                -1 * trade_analysis.won.pnl.total / trade_analysis.lost.pnl.total
+            ),
+            'rpl_per_trade': rpl / trades_closed,
+            'total_return': 100 * total_return,
+            'annual_return': (
+                100 * (1 + total_return) ** (365.25 / bt_period_days) - 100
+            ),
+            'max_money_drawdown': drawdown['max']['moneydown'],
+            'max_pct_drawdown': drawdown['max']['drawdown'],
+            # trades
+            'total_number_trades': total_number_trades,
+            'trades_closed': trades_closed,
+            'pct_winning': 100 * trade_analysis.won.total / trades_closed,
+            'pct_losing': 100 * trade_analysis.lost.total / trades_closed,
+            'avg_money_winning': trade_analysis.won.pnl.average,
+            'avg_money_losing': trade_analysis.lost.pnl.average,
+            'best_winning_trade': trade_analysis.won.pnl.max,
+            'worst_losing_trade': trade_analysis.lost.pnl.max,
+            #  performance
+            'sharpe_ratio': sharpe_ratio,
+            'sqn_score': sqn_score,
+            'sqn_human': self._sqn2rating(sqn_score),
+        }
 
     def get_equity_curve(self):
         """ Return series containing equity curve
@@ -159,19 +162,19 @@ class PerformanceReport:
         time_interval = enddate - startdate
         time_interval_days = time_interval.days
         if time_interval_days > 5 * 365.25:
-            periodicity = ('Yearly', 'Y')
+            return 'Yearly', 'Y'
         elif time_interval_days > 365.25:
-            periodicity = ('Monthly', 'M')
+            return 'Monthly', 'M'
         elif time_interval_days > 50:
-            periodicity = ('Weekly', '168H')
+            return 'Weekly', '168H'
         elif time_interval_days > 5:
-            periodicity = ('Daily', '24H')
+            return 'Daily', '24H'
         elif time_interval_days > 0.5:
-            periodicity = ('Hourly', 'H')
+            return 'Hourly', 'H'
         elif time_interval_days > 0.05:
-            periodicity = ('Per 15 Min', '15M')
-        else: periodicity = ('Per minute', '1M')
-        return periodicity
+            return 'Per 15 Min', '15M'
+        else:else
+            return 'Per minute', '1M'
 
     def plot_return_curve(self, fname='return_curve.png'):
         """ Plots return curve to png file
@@ -184,7 +187,7 @@ class PerformanceReport:
         returns.index = returns.index.date
         is_positive = returns > 0
         fig, ax = plt.subplots(1, 1)
-        ax.set_title("{} returns".format(period[0]))
+        ax.set_title(f"{period[0]} returns")
         ax.set_xlabel("date")
         ax.set_ylabel("return (%)")
         _ = returns.plot.bar(color=is_positive.map({True: 'green', False: 'red'}), ax=ax)
@@ -209,8 +212,7 @@ class PerformanceReport:
                     'url_return_curve': 'file://' + rt_curve
                     }
         all_numbers = {**header, **kpis, **graphics}
-        html_out = template.render(all_numbers)
-        return html_out
+        return template.render(all_numbers)
 
     def generate_pdf_report(self):
         """ Returns PDF report with backtest results
@@ -242,16 +244,16 @@ class PerformanceReport:
     def get_header_data(self):
         """ Return dict with data for report header
         """
-        header = {'strategy_name': self.get_strategy_name(),
-                  'params': self.get_strategy_params(),
-                  'file_name': self.infilename,
-                  'start_date': self.get_start_date(),
-                  'end_date': self.get_end_date(),
-                  'name_user': self.user,
-                  'processing_date': get_now(),
-                  'memo_field': self.memo
-                  }
-        return header
+        return {
+            'strategy_name': self.get_strategy_name(),
+            'params': self.get_strategy_params(),
+            'file_name': self.infilename,
+            'start_date': self.get_start_date(),
+            'end_date': self.get_end_date(),
+            'name_user': self.user,
+            'processing_date': get_now(),
+            'memo_field': self.memo,
+        }
 
     def get_series(self, column='close'):
         """ Return data series
